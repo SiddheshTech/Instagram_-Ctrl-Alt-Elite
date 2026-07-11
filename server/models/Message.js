@@ -14,7 +14,15 @@ const messageSchema = new mongoose.Schema(
     },
     text: {
       type: String,
-      required: [true, 'Message text is required'],
+      default: '',
+    },
+    fileUrl: {
+      type: String,
+      default: '',
+    },
+    fileType: {
+      type: String, // 'image', 'audio', 'video'
+      default: '',
     },
     isRead: {
       type: Boolean,

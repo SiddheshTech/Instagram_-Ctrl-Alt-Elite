@@ -7,11 +7,11 @@ const User = require('../models/User');
 // @access  Private
 const sendMessage = async (req, res) => {
   try {
-    const { receiverId, text } = req.body;
+    const { receiverId, text, fileUrl, fileType } = req.body;
     const senderId = req.user._id;
 
-    if (!receiverId || !text) {
-      return res.status(400).json({ success: false, message: 'Receiver ID and text are required' });
+    if (!receiverId || (!text && !fileUrl)) {
+      return res.status(400).json({ success: false, message: 'Receiver ID and either text or file are required' });
     }
 
     // Check if conversation exists
@@ -28,12 +28,23 @@ const sendMessage = async (req, res) => {
     const newMessage = await Message.create({
       conversationId: conversation._id,
       sender: senderId,
-      text,
+      text: text || '',
+      fileUrl: fileUrl || '',
+      fileType: fileType || '',
     });
 
     // Update conversation with latest message
     conversation.latestMessage = newMessage._id;
     await conversation.save();
+
+    // Emit via socket
+    const io = req.app.get('io');
+    const onlineUsers = req.app.get('onlineUsers');
+    const receiverSocket = onlineUsers.get(receiverId.toString());
+    
+    if (receiverSocket) {
+      io.to(receiverSocket).emit('newMessage', newMessage);
+    }
 
     res.status(201).json({ success: true, data: newMessage });
   } catch (error) {

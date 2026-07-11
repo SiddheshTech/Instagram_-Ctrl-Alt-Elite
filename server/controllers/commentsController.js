@@ -15,6 +15,10 @@ const addComment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Reel not found' });
     }
 
+    if (reel.turnOffCommenting) {
+      return res.status(403).json({ success: false, message: 'Commenting is disabled for this post' });
+    }
+
     const comment = await Comment.create({
       user: req.user._id,
       reel: reelId,
@@ -22,6 +26,23 @@ const addComment = async (req, res) => {
     });
 
     const populatedComment = await comment.populate('user', 'username profilePic');
+
+    if (reel.user.toString() !== req.user._id.toString()) {
+      const Notification = require('../models/Notification');
+      await Notification.create({
+        recipient: reel.user,
+        sender: req.user._id,
+        type: 'comment',
+        relatedPost: reel._id
+      });
+      
+      const io = req.app.get('io');
+      const onlineUsers = req.app.get('onlineUsers');
+      const receiverSocket = onlineUsers.get(reel.user.toString());
+      if (receiverSocket) {
+        io.to(receiverSocket).emit('newNotification');
+      }
+    }
 
     res.status(201).json({ success: true, data: populatedComment });
   } catch (error) {
