@@ -1,0 +1,168 @@
+const Reel = require('../models/Reel');
+
+// @desc    Create a new reel
+// @route   POST /api/reels
+// @access  Private
+const createReel = async (req, res) => {
+  try {
+    const { videoUrl, caption, audioTrackName } = req.body;
+
+    const reel = await Reel.create({
+      user: req.user._id,
+      videoUrl,
+      caption,
+      audioTrackName,
+    });
+
+    res.status(201).json({ success: true, data: reel });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Get all reels (Feed)
+// @route   GET /api/reels
+// @access  Private
+const getReels = async (req, res) => {
+  try {
+    const reels = await Reel.find()
+      .populate('user', 'username profilePic fullName')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, count: reels.length, data: reels });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Get a single reel by ID
+// @route   GET /api/reels/:id
+// @access  Private
+const getReelById = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id)
+      .populate('user', 'username profilePic fullName');
+
+    if (!reel) {
+      return res.status(404).json({ success: false, message: 'Reel not found' });
+    }
+
+    res.status(200).json({ success: true, data: reel });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Toggle like on a reel
+// @route   PUT /api/reels/:id/like
+// @access  Private
+const toggleLikeReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+
+    if (!reel) {
+      return res.status(404).json({ success: false, message: 'Reel not found' });
+    }
+
+    // Check if the reel has already been liked
+    if (reel.likes.includes(req.user._id)) {
+      // Unlike
+      reel.likes = reel.likes.filter(
+        (like) => like.toString() !== req.user._id.toString()
+      );
+    } else {
+      // Like
+      reel.likes.push(req.user._id);
+    }
+
+    await reel.save();
+    res.status(200).json({ success: true, data: reel.likes });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Toggle save on a reel
+// @route   PUT /api/reels/:id/save
+// @access  Private
+const toggleSaveReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+
+    if (!reel) {
+      return res.status(404).json({ success: false, message: 'Reel not found' });
+    }
+
+    if (reel.saves.includes(req.user._id)) {
+      // Unsave
+      reel.saves = reel.saves.filter(
+        (save) => save.toString() !== req.user._id.toString()
+      );
+    } else {
+      // Save
+      reel.saves.push(req.user._id);
+    }
+
+    await reel.save();
+    res.status(200).json({ success: true, data: reel.saves });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Increment share count
+// @route   PUT /api/reels/:id/share
+// @access  Private
+const incrementShareReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+
+    if (!reel) {
+      return res.status(404).json({ success: false, message: 'Reel not found' });
+    }
+
+    reel.sharesCount += 1;
+    await reel.save();
+
+    res.status(200).json({ success: true, data: reel.sharesCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+// @desc    Increment view count
+// @route   PUT /api/reels/:id/view
+// @access  Private
+const incrementViewReel = async (req, res) => {
+  try {
+    const reel = await Reel.findById(req.params.id);
+
+    if (!reel) {
+      return res.status(404).json({ success: false, message: 'Reel not found' });
+    }
+
+    reel.viewsCount += 1;
+    await reel.save();
+
+    res.status(200).json({ success: true, data: reel.viewsCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
+module.exports = {
+  createReel,
+  getReels,
+  getReelById,
+  toggleLikeReel,
+  toggleSaveReel,
+  incrementShareReel,
+  incrementViewReel,
+};

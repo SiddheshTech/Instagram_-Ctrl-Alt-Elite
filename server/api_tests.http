@@ -1,0 +1,80 @@
+@baseUrl = http://localhost:5000/api
+@token = {{login.response.body.token}}
+@reelId = {{createReel.response.body.data._id}}
+@commentId = {{addComment.response.body.data._id}}
+
+### 1. Register a new user (Optional, if you don't have one)
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "fullName": "Test User",
+  "email": "test@test.com",
+  "password": "password123"
+}
+
+### 2. Login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "password123"
+}
+
+### 3. Create a new Reel
+# @name createReel
+POST {{baseUrl}}/reels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "videoUrl": "https://example.com/video.mp4",
+  "caption": "Study + Music = No Stress Therapy 🎶📖",
+  "audioTrackName": "Lofi Chill Beats"
+}
+
+### 4. Get all Reels (Feed)
+GET {{baseUrl}}/reels
+Authorization: Bearer {{token}}
+
+### 5. Like the Reel
+PUT {{baseUrl}}/reels/{{reelId}}/like
+Authorization: Bearer {{token}}
+
+### 6. Save the Reel
+PUT {{baseUrl}}/reels/{{reelId}}/save
+Authorization: Bearer {{token}}
+
+### 7. Increment Share Count
+PUT {{baseUrl}}/reels/{{reelId}}/share
+Authorization: Bearer {{token}}
+
+### 8. Increment View Count
+PUT {{baseUrl}}/reels/{{reelId}}/view
+Authorization: Bearer {{token}}
+
+### 9. Add a Comment to the Reel
+# @name addComment
+POST {{baseUrl}}/reels/{{reelId}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "This is so relatable! Keep it up."
+}
+
+### 10. Get Comments for the Reel
+GET {{baseUrl}}/reels/{{reelId}}/comments
+Authorization: Bearer {{token}}
+
+### 11. Like the Comment
+PUT {{baseUrl}}/comments/{{commentId}}/like
+Authorization: Bearer {{token}}
+
+### 12. Delete the Comment
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{token}}

@@ -20,6 +20,8 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/reels', require('./routes/reelsRoutes'));
+app.use('/api/comments', require('./routes/commentRoutes'));
 
 // 404 Route handler
 app.use((req, res, next) => {
