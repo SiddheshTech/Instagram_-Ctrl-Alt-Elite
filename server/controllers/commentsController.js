@@ -27,8 +27,12 @@ const addComment = async (req, res) => {
 
     const populatedComment = await comment.populate('user', 'username profilePic');
 
+    const Notification = require('../models/Notification');
+    const User = require('../models/User');
+    const io = req.app.get('io');
+
+    // 1. Notify reel owner of comment (if not commenter themselves)
     if (reel.user.toString() !== req.user._id.toString()) {
-      const Notification = require('../models/Notification');
       await Notification.create({
         recipient: reel.user,
         sender: req.user._id,
@@ -36,11 +40,30 @@ const addComment = async (req, res) => {
         relatedPost: reel._id
       });
       
-      const io = req.app.get('io');
-      const onlineUsers = req.app.get('onlineUsers');
-      const receiverSocket = onlineUsers.get(reel.user.toString());
-      if (receiverSocket) {
-        io.to(receiverSocket).emit('newNotification');
+      io.to(reel.user.toString()).emit('newNotification');
+    }
+
+    // 2. Parse and notify @mentions
+    const mentionRegex = /@([a-zA-Z0-9_\.]+)/g;
+    let match;
+    const uniqueMentions = new Set();
+    
+    while ((match = mentionRegex.exec(text)) !== null) {
+      uniqueMentions.add(match[1].toLowerCase());
+    }
+
+    for (let username of uniqueMentions) {
+      const mentionedUser = await User.findOne({ username });
+      // Don't notify if user mentions themselves or target user was already notified as reel owner
+      if (mentionedUser && mentionedUser._id.toString() !== req.user._id.toString()) {
+        await Notification.create({
+          recipient: mentionedUser._id,
+          sender: req.user._id,
+          type: 'mention',
+          relatedPost: reel._id
+        });
+        
+        io.to(mentionedUser._id.toString()).emit('newNotification');
       }
     }
 

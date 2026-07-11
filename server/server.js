@@ -33,8 +33,57 @@ io.on('connection', (socket) => {
     if (userId) {
       const roomName = userId.toString();
       socket.join(roomName);
+      socket.userId = roomName; // Track userId directly on the socket
+      socket.activeMinutes = 0; // Initialize connection minutes tracker
+      
       onlineUsers.set(roomName, roomName); // Map user to room so io.to(receiverSocket) emits to all their sessions
       io.emit('getUsers', Array.from(onlineUsers.keys()));
+
+      // Periodically track active time (every 60 seconds)
+      if (!socket.timeTrackingInterval) {
+        socket.timeTrackingInterval = setInterval(async () => {
+          try {
+            if (socket.userId) {
+              const todayStr = new Date().toISOString().split('T')[0];
+              const TimeSpent = require('./models/TimeSpent');
+              
+              // Increment minutes spent for today
+              const todaySpent = await TimeSpent.findOneAndUpdate(
+                { userId: socket.userId, date: todayStr },
+                { $inc: { minutes: 1 } },
+                { upsert: true, new: true }
+              );
+
+              // Increment socket connection session time for break reminders
+              socket.activeMinutes += 1;
+
+              // Query user settings
+              const User = require('./models/User');
+              const user = await User.findById(socket.userId);
+              
+              if (user) {
+                // 1. Check if Daily Time Limit reached
+                if (user.dailyTimeLimit > 0 && todaySpent.minutes >= user.dailyTimeLimit) {
+                  socket.emit('dailyLimitReached', { 
+                    limit: user.dailyTimeLimit, 
+                    spent: todaySpent.minutes 
+                  });
+                }
+                
+                // 2. Check if Break Reminder reached
+                if (user.breakReminder > 0 && socket.activeMinutes >= user.breakReminder) {
+                  socket.emit('breakReminderReached', { 
+                    reminder: user.breakReminder 
+                  });
+                  socket.activeMinutes = 0; // Reset reminder counter after alert
+                }
+              }
+            }
+          } catch (err) {
+            console.error('Real-time time tracking error:', err);
+          }
+        }, 60000); // 60 seconds interval
+      }
     }
   });
 
@@ -60,6 +109,11 @@ io.on('connection', (socket) => {
   // Handle disconnect
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
+    
+    // Clear the time tracking interval
+    if (socket.timeTrackingInterval) {
+      clearInterval(socket.timeTrackingInterval);
+    }
     
     // Check if any users have completely disconnected (no active sockets left in their room)
     for (let userId of onlineUsers.keys()) {

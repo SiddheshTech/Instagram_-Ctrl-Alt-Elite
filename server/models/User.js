@@ -62,6 +62,18 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    dailyTimeLimit: {
+      type: Number,
+      default: 0, // In minutes, 0 = Off
+    },
+    breakReminder: {
+      type: Number,
+      default: 0, // In minutes, 0 = Off
+    },
+    mutePushNotifications: {
+      type: Boolean,
+      default: false,
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

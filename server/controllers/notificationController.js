@@ -10,7 +10,14 @@ const getNotifications = async (req, res) => {
       .populate('relatedPost', 'videoUrl')
       .sort({ createdAt: -1 });
 
-    res.status(200).json({ success: true, data: notifications });
+    const FollowRequest = require('../models/FollowRequest');
+    const pendingFollowRequestsCount = await FollowRequest.countDocuments({ recipient: req.user._id, status: 'pending' });
+
+    res.status(200).json({ 
+      success: true, 
+      pendingFollowRequestsCount,
+      data: notifications 
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server Error' });

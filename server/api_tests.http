@@ -170,3 +170,36 @@ Content-Type: application/json
 DELETE {{baseUrl}}/users/profile/sessions/{{sessionId}}
 Authorization: Bearer {{token}}
 
+### 25. Get Time Spent (Time on Instagram page - daily average & last 7 days history)
+GET {{baseUrl}}/users/profile/time-spent
+Authorization: Bearer {{token}}
+
+### 26. Update Daily Time Limit & Break Reminder Settings (Time on Instagram settings)
+PUT {{baseUrl}}/users/profile/time-limit
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "dailyTimeLimit": 45,
+  "breakReminder": 10,
+  "mutePushNotifications": false
+}
+
+### 27. Get Unfollowers (People who unfollowed you page)
+GET {{baseUrl}}/users/profile/unfollowers
+Authorization: Bearer {{token}}
+
+### 28. Get Follow Requests list (Private profile pending approvals)
+# @name getFollowRequests
+GET {{baseUrl}}/users/follow-requests
+Authorization: Bearer {{token}}
+
+### 29. Approve Follow Request
+@followRequestId = {{getFollowRequests.response.body.data[0]._id}}
+PUT {{baseUrl}}/users/follow-requests/{{followRequestId}}/approve
+Authorization: Bearer {{token}}
+
+### 30. Reject Follow Request
+PUT {{baseUrl}}/users/follow-requests/{{followRequestId}}/reject
+Authorization: Bearer {{token}}
+
