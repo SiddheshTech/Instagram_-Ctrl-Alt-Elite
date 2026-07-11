@@ -1,0 +1,20 @@
+.notepad-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  outline: 2px dashed transparent;
+  outline-offset: -4px;
+  transition: outline-color 0.2s ease;
+}
+
+.notepad-container.dragover {
+  outline-color: var(--ButtonDkShadow);
+}
+
+.markdown-preview {
+  padding: 8px;
+  height: calc(100% - 40px);
+  overflow: auto;
+  user-select: text;
+  flex-direction: column;
+}

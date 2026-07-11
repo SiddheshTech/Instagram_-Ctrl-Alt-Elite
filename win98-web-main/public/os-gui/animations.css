@@ -1,0 +1,63 @@
+.menu-popup-wrapper {
+    position: absolute;
+    overflow: hidden;
+    display: none;
+    /* No transition on display for the wrapper to avoid interference */
+    pointer-events: none;
+    width: fit-content;
+    height: fit-content;
+}
+
+.menu-popup-wrapper.open {
+    display: block;
+    pointer-events: auto;
+}
+
+.menu-popup-wrapper.measuring {
+    display: block !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.menu-popup-wrapper .menu-popup {
+    /* We must use relative to ensure the wrapper gets size from the menu */
+    position: relative !important;
+    display: block;
+    margin: 0 !important;
+    transform: translate(0, 0);
+    opacity: 1;
+}
+
+.menu-popup-wrapper.open .menu-popup {
+    transition: transform 130ms linear, opacity 130ms linear;
+}
+
+@starting-style {
+    .menu-popup-wrapper.open .menu-popup {
+        opacity: 0;
+    }
+    .menu-popup-wrapper.open.to-right .menu-popup {
+        transform: translateX(-100%);
+    }
+    .menu-popup-wrapper.open.to-left .menu-popup {
+        transform: translateX(100%);
+    }
+    .menu-popup-wrapper.open.to-down .menu-popup {
+        transform: translateY(-100%);
+    }
+    .menu-popup-wrapper.open.to-up .menu-popup {
+        transform: translateY(100%);
+    }
+    .menu-popup-wrapper.open.to-diag-left-top .menu-popup {
+        transform: translate(-100%, -100%);
+    }
+    .menu-popup-wrapper.open.to-diag-right-top .menu-popup {
+        transform: translate(100%, -100%);
+    }
+    .menu-popup-wrapper.open.to-diag-left-bottom .menu-popup {
+        transform: translate(-100%, 100%);
+    }
+    .menu-popup-wrapper.open.to-diag-right-bottom .menu-popup {
+        transform: translate(100%, 100%);
+    }
+}

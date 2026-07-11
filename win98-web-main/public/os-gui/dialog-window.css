@@ -1,0 +1,42 @@
+/* Dialog Window Styles */
+
+.dialog-content {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    font-family: "MSW98UI", sans-serif;
+    font-size: var(--font-size-base);
+}
+
+.dialog-content-icon {
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    background-color: var(--button-face);
+    border-top: 1px solid var(--border-highlight);
+}
+
+.dialog-buttons button {
+    min-width: 90px;
+    margin: 0 5px;
+    padding: 4px 12px;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4; /* Below the window's default z-index */
+}
+
+.modal-overlay.visible {
+    background: var(--checker-black) repeat;
+}
