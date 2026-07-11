@@ -22,6 +22,8 @@ app.get('/', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/reels', require('./routes/reelsRoutes'));
 app.use('/api/comments', require('./routes/commentRoutes'));
+app.use('/api/messages', require('./routes/messageRoutes'));
+app.use('/api/notes', require('./routes/noteRoutes'));
 
 // 404 Route handler
 app.use((req, res, next) => {

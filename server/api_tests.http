@@ -78,3 +78,36 @@ Authorization: Bearer {{token}}
 ### 12. Delete the Comment
 DELETE {{baseUrl}}/comments/{{commentId}}
 Authorization: Bearer {{token}}
+
+### 13. Create a Note
+POST {{baseUrl}}/notes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "Feeling productive today!"
+}
+
+### 14. Get Notes
+GET {{baseUrl}}/notes
+Authorization: Bearer {{token}}
+
+### 15. Send a Message
+# @name sendMessage
+POST {{baseUrl}}/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "receiverId": "INSERT_RECEIVER_USER_ID_HERE",
+  "text": "Hey, are you free to chat?"
+}
+
+### 16. Get Conversations
+GET {{baseUrl}}/messages/conversations
+Authorization: Bearer {{token}}
+
+### 17. Get Messages in a Conversation
+@conversationId = {{sendMessage.response.body.data.conversationId}}
+GET {{baseUrl}}/messages/{{conversationId}}
+Authorization: Bearer {{token}}
