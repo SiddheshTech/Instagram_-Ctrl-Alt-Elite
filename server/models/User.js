@@ -41,6 +41,27 @@ const userSchema = new mongoose.Schema(
       default: '',
       maxlength: [150, 'Bio cannot exceed 150 characters'],
     },
+    website: {
+      type: String,
+      default: '',
+    },
+    isPrivate: {
+      type: Boolean,
+      default: false,
+    },
+    accountType: {
+      type: String,
+      enum: ['personal', 'professional'],
+      default: 'personal',
+    },
+    showActivityStatus: {
+      type: Boolean,
+      default: true,
+    },
+    allowStorySharing: {
+      type: Boolean,
+      default: true,
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,

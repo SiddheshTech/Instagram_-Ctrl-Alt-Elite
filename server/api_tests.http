@@ -111,3 +111,62 @@ Authorization: Bearer {{token}}
 @conversationId = {{sendMessage.response.body.data.conversationId}}
 GET {{baseUrl}}/messages/{{conversationId}}
 Authorization: Bearer {{token}}
+
+### 18. Update User Profile (Edit Profile page)
+PUT {{baseUrl}}/users/profile/update
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fullName": "Shrushti Ganacharya",
+  "username": "shrushtiganacharya",
+  "website": "mywebsite.com",
+  "bio": "Just living in the past ⌛📺"
+}
+
+### 19. Update Privacy Settings (Privacy & Security page)
+PUT {{baseUrl}}/users/profile/privacy-settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isPrivate": false,
+  "accountType": "personal",
+  "showActivityStatus": true,
+  "allowStorySharing": true
+}
+
+### 20. Get Login Activity (Where You're Logged In / sessions)
+# @name getSessions
+GET {{baseUrl}}/users/profile/sessions
+Authorization: Bearer {{token}}
+
+### 21. Respond to "Was This You?" (Confirm Session)
+@sessionId = {{getSessions.response.body.data[0]._id}}
+PUT {{baseUrl}}/users/profile/sessions/{{sessionId}}/confirm
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "wasConfirmed": true
+}
+
+### 22. Get Emails from Instagram (Security & Notification Emails list)
+GET {{baseUrl}}/users/profile/emails
+Authorization: Bearer {{token}}
+
+### 23. Change Password (Change Password page)
+PUT {{baseUrl}}/users/profile/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "oldPassword": "password123",
+  "newPassword": "newpassword123",
+  "confirmNewPassword": "newpassword123"
+}
+
+### 24. Terminate/Logout Session (revokes active session in MongoDB)
+DELETE {{baseUrl}}/users/profile/sessions/{{sessionId}}
+Authorization: Bearer {{token}}
+

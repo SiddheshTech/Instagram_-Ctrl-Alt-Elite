@@ -15,12 +15,27 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      // Verify active session exists in DB
+      const Session = require('../models/Session');
+      const session = await Session.findOne({ userId: decoded.id, token, isActive: true });
+      if (!session) {
+        return res.status(401).json({ success: false, message: 'Session expired or logged out' });
+      }
+
+      // Update session activity time
+      session.lastActive = new Date();
+      await session.save();
+
       // Get user from the token (exclude password)
       req.user = await User.findById(decoded.id).select('-password');
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
       }
+
+      // Attach session info to request if needed
+      req.token = token;
+      req.sessionId = session._id;
 
       next();
     } catch (error) {

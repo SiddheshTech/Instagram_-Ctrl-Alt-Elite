@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Session = require('../models/Session');
+const EmailLog = require('../models/EmailLog');
+const { getIPLocation, parseUserAgent } = require('../utils/geo');
 
 // Helper to generate JWT Token
 const generateToken = (id) => {
@@ -49,10 +52,36 @@ const signupUser = async (req, res) => {
     });
 
     if (user) {
+      const token = generateToken(user._id);
+      
+      // Determine request details for session logging
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+      
+      const location = await getIPLocation(ip);
+      const device = parseUserAgent(userAgent);
+      
+      // Create session
+      await Session.create({
+        userId: user._id,
+        token,
+        device,
+        location,
+        ipAddress: ip || ''
+      });
+
+      // Log welcome email in EmailLog
+      await EmailLog.create({
+        userId: user._id,
+        subject: 'Welcome to Instagram!',
+        body: `Hi ${user.fullName}, thank you for registering an account on our platform! We are excited to have you here. Your login activity will be tracked from ${device} at ${location} for security.`,
+        category: 'security'
+      });
+
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
-        token: generateToken(user._id),
+        token,
         user: {
           _id: user._id,
           username: user.username,
@@ -97,10 +126,36 @@ const loginUser = async (req, res) => {
     });
 
     if (user && (await user.matchPassword(password))) {
+      const token = generateToken(user._id);
+
+      // Determine request details for session logging
+      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+      
+      const location = await getIPLocation(ip);
+      const device = parseUserAgent(userAgent);
+      
+      // Create session
+      await Session.create({
+        userId: user._id,
+        token,
+        device,
+        location,
+        ipAddress: ip || ''
+      });
+
+      // Log login email in EmailLog
+      await EmailLog.create({
+        userId: user._id,
+        subject: 'New login to Instagram',
+        body: `We detected a new login to your account on ${device} in ${location} (IP: ${ip}) at ${new Date().toLocaleString()}. If this was you, no action is required. If this wasn't you, please change your password.`,
+        category: 'security'
+      });
+
       res.json({
         success: true,
         message: 'Login successful',
-        token: generateToken(user._id),
+        token,
         user: {
           _id: user._id,
           username: user.username,

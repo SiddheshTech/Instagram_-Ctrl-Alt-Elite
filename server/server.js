@@ -30,8 +30,12 @@ io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
   socket.on('addUser', (userId) => {
-    onlineUsers.set(userId, socket.id);
-    io.emit('getUsers', Array.from(onlineUsers.keys()));
+    if (userId) {
+      const roomName = userId.toString();
+      socket.join(roomName);
+      onlineUsers.set(roomName, roomName); // Map user to room so io.to(receiverSocket) emits to all their sessions
+      io.emit('getUsers', Array.from(onlineUsers.keys()));
+    }
   });
 
   // WebRTC Signaling for Voice/Camera Calls
@@ -56,10 +60,12 @@ io.on('connection', (socket) => {
   // Handle disconnect
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
-    for (let [id, socketId] of onlineUsers.entries()) {
-      if (socketId === socket.id) {
-        onlineUsers.delete(id);
-        break;
+    
+    // Check if any users have completely disconnected (no active sockets left in their room)
+    for (let userId of onlineUsers.keys()) {
+      const room = io.sockets.adapter.rooms.get(userId);
+      if (!room || room.size === 0) {
+        onlineUsers.delete(userId);
       }
     }
     io.emit('getUsers', Array.from(onlineUsers.keys()));
