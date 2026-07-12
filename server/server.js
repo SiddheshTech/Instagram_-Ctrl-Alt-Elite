@@ -152,8 +152,32 @@ io.on('connection', (socket) => {
   });
 });
 
+// Allowed origins
+const allowedOrigins = [
+  'https://instagram-ctrl-alt-elite-gpyc.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Handle preflight requests for all routes
+app.options('*', cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
