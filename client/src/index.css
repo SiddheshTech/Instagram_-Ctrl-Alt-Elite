@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Grand+Hotel&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --animate-progress: progress 5s linear forwards;
+  
+  @keyframes progress {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.vintage-bg {
+  background-color: #e5e5e5;
+  background-image: url("https://www.transparenttextures.com/patterns/grid-me.png");
+  font-family: 'Tahoma', 'Verdana', sans-serif;
+}
+
+.vintage-panel {
+  background: #ffffff;
+  border: 1px solid #999999;
+  border-top-color: #cccccc;
+  border-left-color: #cccccc;
+  border-radius: 0px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.vintage-link {
+  color: #0000EE;
+  text-decoration: none;
+}
+.vintage-link:hover {
+  text-decoration: underline;
+  color: #0000EE;
+}
+
+.vintage-input {
+  background: #ffffff;
+  border: 1px solid #7f9db9;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.1);
+  border-radius: 0px;
+  font-family: 'Tahoma', 'Verdana', sans-serif;
+}
+
+.retro-header {
+  background: #3e6080 url("https://www.transparenttextures.com/patterns/dark-denim-3.png");
+  border-bottom: 1px solid #1a334d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.retro-title {
+  font-family: 'Grand Hotel', cursive;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.5);
+}
+
+.retro-tab-bar {
+  background: linear-gradient(to bottom, #2d2d2d 0%, #000000 100%);
+  border-top: 1px solid #000;
+  box-shadow: inset 0 1px 0 #4a4a4a;
+}
+
+.retro-button {
+  background: linear-gradient(to bottom, #ffffff 0%, #f3f3f3 49%, #e0e0e0 50%, #f6f6f6 100%);
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 2px rgba(0,0,0,0.15);
+  color: #333;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+}
+
+.retro-button:hover {
+  background: linear-gradient(to bottom, #ffffff 0%, #fafafa 49%, #e8e8e8 50%, #fcfcfc 100%);
+}
+
+.retro-button:active {
+  background: linear-gradient(to bottom, #e0e0e0 0%, #d0d0d0 49%, #c0c0c0 50%, #e0e0e0 100%);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.retro-blue-button {
+  background: linear-gradient(to bottom, #6cb2e4 0%, #4693ce 49%, #2779b5 50%, #4692ce 100%);
+  border: 1px solid #1c5885;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.2);
+  color: white;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.4);
+}
+
+.retro-blue-button:hover {
+  background: linear-gradient(to bottom, #7dbce8 0%, #5b9ed5 49%, #3685bc 50%, #569cd3 100%);
+}
+
+.retro-blue-button:active {
+  background: linear-gradient(to bottom, #4693ce 0%, #307eb8 49%, #1d6193 50%, #2f7db6 100%);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.dark-mode {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.dark-mode img, 
+.dark-mode video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+
+.handwritten-text {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4em;
+  color: #333;
+}
+
+@keyframes fly-up-heart {
+  0% {
+    transform: translateY(0) scale(0.5) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(-15px) scale(1.1) rotate(15deg);
+  }
+  100% {
+    transform: translateY(-180px) scale(0.7) rotate(-25deg);
+    opacity: 0;
+  }
+}
+
+.animate-fly-heart {
+  animation: fly-up-heart 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}

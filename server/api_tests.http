@@ -1,0 +1,205 @@
+@baseUrl = http://localhost:5000/api
+@token = {{login.response.body.token}}
+@reelId = {{createReel.response.body.data._id}}
+@commentId = {{addComment.response.body.data._id}}
+
+### 1. Register a new user (Optional, if you don't have one)
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "fullName": "Test User",
+  "email": "test@test.com",
+  "password": "password123"
+}
+
+### 2. Login to get token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "password123"
+}
+
+### 3. Create a new Reel
+# @name createReel
+POST {{baseUrl}}/reels
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "videoUrl": "https://example.com/video.mp4",
+  "caption": "Study + Music = No Stress Therapy 🎶📖",
+  "audioTrackName": "Lofi Chill Beats"
+}
+
+### 4. Get all Reels (Feed)
+GET {{baseUrl}}/reels
+Authorization: Bearer {{token}}
+
+### 5. Like the Reel
+PUT {{baseUrl}}/reels/{{reelId}}/like
+Authorization: Bearer {{token}}
+
+### 6. Save the Reel
+PUT {{baseUrl}}/reels/{{reelId}}/save
+Authorization: Bearer {{token}}
+
+### 7. Increment Share Count
+PUT {{baseUrl}}/reels/{{reelId}}/share
+Authorization: Bearer {{token}}
+
+### 8. Increment View Count
+PUT {{baseUrl}}/reels/{{reelId}}/view
+Authorization: Bearer {{token}}
+
+### 9. Add a Comment to the Reel
+# @name addComment
+POST {{baseUrl}}/reels/{{reelId}}/comments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "This is so relatable! Keep it up."
+}
+
+### 10. Get Comments for the Reel
+GET {{baseUrl}}/reels/{{reelId}}/comments
+Authorization: Bearer {{token}}
+
+### 11. Like the Comment
+PUT {{baseUrl}}/comments/{{commentId}}/like
+Authorization: Bearer {{token}}
+
+### 12. Delete the Comment
+DELETE {{baseUrl}}/comments/{{commentId}}
+Authorization: Bearer {{token}}
+
+### 13. Create a Note
+POST {{baseUrl}}/notes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "Feeling productive today!"
+}
+
+### 14. Get Notes
+GET {{baseUrl}}/notes
+Authorization: Bearer {{token}}
+
+### 15. Send a Message
+# @name sendMessage
+POST {{baseUrl}}/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "receiverId": "INSERT_RECEIVER_USER_ID_HERE",
+  "text": "Hey, are you free to chat?"
+}
+
+### 16. Get Conversations
+GET {{baseUrl}}/messages/conversations
+Authorization: Bearer {{token}}
+
+### 17. Get Messages in a Conversation
+@conversationId = {{sendMessage.response.body.data.conversationId}}
+GET {{baseUrl}}/messages/{{conversationId}}
+Authorization: Bearer {{token}}
+
+### 18. Update User Profile (Edit Profile page)
+PUT {{baseUrl}}/users/profile/update
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fullName": "Shrushti Ganacharya",
+  "username": "shrushtiganacharya",
+  "website": "mywebsite.com",
+  "bio": "Just living in the past ⌛📺"
+}
+
+### 19. Update Privacy Settings (Privacy & Security page)
+PUT {{baseUrl}}/users/profile/privacy-settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "isPrivate": false,
+  "accountType": "personal",
+  "showActivityStatus": true,
+  "allowStorySharing": true
+}
+
+### 20. Get Login Activity (Where You're Logged In / sessions)
+# @name getSessions
+GET {{baseUrl}}/users/profile/sessions
+Authorization: Bearer {{token}}
+
+### 21. Respond to "Was This You?" (Confirm Session)
+@sessionId = {{getSessions.response.body.data[0]._id}}
+PUT {{baseUrl}}/users/profile/sessions/{{sessionId}}/confirm
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "wasConfirmed": true
+}
+
+### 22. Get Emails from Instagram (Security & Notification Emails list)
+GET {{baseUrl}}/users/profile/emails
+Authorization: Bearer {{token}}
+
+### 23. Change Password (Change Password page)
+PUT {{baseUrl}}/users/profile/change-password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "oldPassword": "password123",
+  "newPassword": "newpassword123",
+  "confirmNewPassword": "newpassword123"
+}
+
+### 24. Terminate/Logout Session (revokes active session in MongoDB)
+DELETE {{baseUrl}}/users/profile/sessions/{{sessionId}}
+Authorization: Bearer {{token}}
+
+### 25. Get Time Spent (Time on Instagram page - daily average & last 7 days history)
+GET {{baseUrl}}/users/profile/time-spent
+Authorization: Bearer {{token}}
+
+### 26. Update Daily Time Limit & Break Reminder Settings (Time on Instagram settings)
+PUT {{baseUrl}}/users/profile/time-limit
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "dailyTimeLimit": 45,
+  "breakReminder": 10,
+  "mutePushNotifications": false
+}
+
+### 27. Get Unfollowers (People who unfollowed you page)
+GET {{baseUrl}}/users/profile/unfollowers
+Authorization: Bearer {{token}}
+
+### 28. Get Follow Requests list (Private profile pending approvals)
+# @name getFollowRequests
+GET {{baseUrl}}/users/follow-requests
+Authorization: Bearer {{token}}
+
+### 29. Approve Follow Request
+@followRequestId = {{getFollowRequests.response.body.data[0]._id}}
+PUT {{baseUrl}}/users/follow-requests/{{followRequestId}}/approve
+Authorization: Bearer {{token}}
+
+### 30. Reject Follow Request
+PUT {{baseUrl}}/users/follow-requests/{{followRequestId}}/reject
+Authorization: Bearer {{token}}
+
