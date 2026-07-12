@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export function Login({ onLogin }: { onLogin: (token: string, user: any) => void }) {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [username, setUsername] = useState('');
@@ -15,13 +17,13 @@ export function Login({ onLogin }: { onLogin: (token: string, user: any) => void
 
     try {
       if (isLoginMode) {
-        const res = await axios.post('http://localhost:5000/api/auth/login', {
+        const res = await axios.post(`${API_BASE}/api/auth/login`, {
           emailOrUsername: username,
           password
         });
         onLogin(res.data.token, res.data.user);
       } else {
-        const res = await axios.post('http://localhost:5000/api/auth/signup', {
+        const res = await axios.post(`${API_BASE}/api/auth/signup`, {
           username,
           password,
           email,

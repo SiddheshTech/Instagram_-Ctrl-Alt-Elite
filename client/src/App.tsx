@@ -12,6 +12,9 @@ import { posts as initialPosts } from './data';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
+const API_BASE = import.meta.env.VITE_API_URL || `${API_BASE}';
+
+
 export default function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [authUser, setAuthUser] = useState<any | null>(null);
@@ -55,17 +58,17 @@ export default function App() {
       }
       try {
         const [meRes, reelsRes, notifRes, notesRes, convosRes, storiesRes, sessionsRes, emailsRes, timeSpentRes, followRequestsRes, unfollowersRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/auth/me', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5000/api/reels', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://localhost:5000/api/notifications/recent-activity', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/notes', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/messages/conversations', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/stories', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/users/sessions', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/users/emails', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/users/time-spent', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: { dailyAverage: 0 } } })),
-          axios.get('http://localhost:5000/api/users/follow-requests', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
-          axios.get('http://localhost:5000/api/users/unfollowers', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } }))
+          axios.get(`${API_BASE}/api/auth/me', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${API_BASE}/api/reels', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${API_BASE}/api/notifications/recent-activity', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/notes', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/messages/conversations', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/stories', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/users/sessions', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/users/emails', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/users/time-spent', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: { dailyAverage: 0 } } })),
+          axios.get(`${API_BASE}/api/users/follow-requests', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } })),
+          axios.get(`${API_BASE}/api/users/unfollowers', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { data: [] } }))
         ]);
         const user = meRes.data.user;
         setAuthUser(user);
@@ -198,7 +201,7 @@ export default function App() {
 
   const updateRetroProfileBackend = async (data: any) => {
     try {
-      await axios.put('http://localhost:5000/api/users/retro-profile', data, {
+      await axios.put(`${API_BASE}/api/users/retro-profile', data, {
         headers: { Authorization: `Bearer ${token}` }
       });
     } catch (err) {
@@ -217,7 +220,7 @@ export default function App() {
     const text = window.prompt('What is on your mind? (Max 60 chars)');
     if (!text || text.trim() === '') return;
     try {
-      const res = await axios.post('http://localhost:5000/api/notes', { text: text.trim() }, {
+      const res = await axios.post(`${API_BASE}/api/notes', { text: text.trim() }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // The backend returns a non-populated user, so we manually build it for the UI
@@ -662,7 +665,7 @@ export default function App() {
 
   useEffect(() => {
     if (authUser && token && !socket) {
-      const newSocket = io('http://localhost:5000');
+      const newSocket = io(`${API_BASE}`);
       
       newSocket.on('connect', () => {
         newSocket.emit('addUser', authUser._id);
@@ -694,7 +697,7 @@ export default function App() {
           return newList;
         } else {
           // If we don't have this conversation in our list, refresh the whole list
-          axios.get('http://localhost:5000/api/messages/conversations', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get(`${API_BASE}/api/messages/conversations', { headers: { Authorization: `Bearer ${token}` } })
             .then(res => setConversationsList(res.data.data || []))
             .catch(err => console.error(err));
           return prev;
@@ -773,7 +776,7 @@ export default function App() {
   const handleSendDirectMessage = async (text: string) => {
     if (!text.trim() || !activeChatUser) return;
     try {
-      const res = await axios.post('http://localhost:5000/api/messages', {
+      const res = await axios.post(`${API_BASE}/api/messages', {
         receiverId: activeChatUser._id,
         text: text.trim()
       }, {
@@ -907,7 +910,7 @@ export default function App() {
         fileUrl: options?.storyImg || '',
       };
       
-      const res = await axios.post('http://localhost:5000/api/messages', payload, {
+      const res = await axios.post(`${API_BASE}/api/messages', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -1133,7 +1136,7 @@ export default function App() {
         const formData = new FormData();
         formData.append('file', uploadedFile.file);
         
-        const uploadRes = await axios.post('http://localhost:5000/api/upload', formData, {
+        const uploadRes = await axios.post(`${API_BASE}/api/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${token}`
@@ -1144,7 +1147,7 @@ export default function App() {
 
       if (createTab === 'STORY') {
         const storyData = { mediaUrl: finalUrl };
-        const res = await axios.post('http://localhost:5000/api/stories', storyData, {
+        const res = await axios.post(`${API_BASE}/api/stories', storyData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         showTemporaryToast(`Story shared successfully!`);
@@ -1175,7 +1178,7 @@ export default function App() {
           turnOffCommenting: turnOffComments
         };
 
-        const res = await axios.post('http://localhost:5000/api/reels', postData, {
+        const res = await axios.post(`${API_BASE}/api/reels', postData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -3459,9 +3462,9 @@ export default function App() {
                              const formData = new FormData();
                              formData.append('media', file);
                              try {
-                               const res = await axios.post('http://localhost:5000/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                               const res = await axios.post(`${API_BASE}/api/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
                                const newPic = res.data.url;
-                               await axios.put('http://localhost:5000/api/users/profile', { profilePic: newPic }, { headers: { Authorization: `Bearer ${token}` } });
+                               await axios.put(`${API_BASE}/api/users/profile', { profilePic: newPic }, { headers: { Authorization: `Bearer ${token}` } });
                                setAuthUser((prev: any) => prev ? { ...prev, profilePic: newPic } : null);
                                showTemporaryToast("Profile photo updated!");
                              } catch (err) {
@@ -3504,7 +3507,7 @@ export default function App() {
                          onClick={async () => {
                            try {
                              const payload = { fullName: editFullName, username: editUsername, website: editWebsite, bio: editBio };
-                             const res = await axios.put('http://localhost:5000/api/users/profile', payload, { headers: { Authorization: `Bearer ${token}` } });
+                             const res = await axios.put(`${API_BASE}/api/users/profile', payload, { headers: { Authorization: `Bearer ${token}` } });
                              if (customStatus !== authUser?.customStatus) {
                                await updateRetroProfileBackend({ customStatus });
                              }
@@ -3557,7 +3560,7 @@ export default function App() {
                            if (!oldPassword || !newPassword || !confirmNewPassword) return showTemporaryToast("All fields are required");
                            if (newPassword !== confirmNewPassword) return showTemporaryToast("Passwords don't match");
                            try {
-                             await axios.put('http://localhost:5000/api/users/password', { oldPassword, newPassword, confirmNewPassword }, { headers: { Authorization: `Bearer ${token}` } });
+                             await axios.put(`${API_BASE}/api/users/password', { oldPassword, newPassword, confirmNewPassword }, { headers: { Authorization: `Bearer ${token}` } });
                              showTemporaryToast("Password updated successfully!");
                              setOldPassword('');
                              setNewPassword('');
@@ -3584,7 +3587,7 @@ export default function App() {
                          <div className="flex items-center gap-3">
                            <input type="radio" name="accountPrivacy" id="publicAccount" className="cursor-pointer" checked={!isPrivateAccount} onChange={async () => {
                              setIsPrivateAccount(false);
-                             try { await axios.put('http://localhost:5000/api/users/privacy', { isPrivate: false }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Account set to Public"); } catch (e) { console.error(e); }
+                             try { await axios.put(`${API_BASE}/api/users/privacy', { isPrivate: false }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Account set to Public"); } catch (e) { console.error(e); }
                            }} />
                            <label htmlFor="publicAccount" className="font-bold cursor-pointer">Public Account</label>
                          </div>
@@ -3593,7 +3596,7 @@ export default function App() {
                          <div className="flex items-center gap-3">
                            <input type="radio" name="accountPrivacy" id="privateAccount" className="cursor-pointer" checked={isPrivateAccount} onChange={async () => {
                              setIsPrivateAccount(true);
-                             try { await axios.put('http://localhost:5000/api/users/privacy', { isPrivate: true }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Account set to Private"); } catch (e) { console.error(e); }
+                             try { await axios.put(`${API_BASE}/api/users/privacy', { isPrivate: true }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Account set to Private"); } catch (e) { console.error(e); }
                            }} />
                            <label htmlFor="privateAccount" className="font-bold cursor-pointer">Private Account</label>
                          </div>
@@ -3607,7 +3610,7 @@ export default function App() {
                          <div className="flex items-center gap-3">
                            <input type="radio" name="accountType" id="personalAccount" className="cursor-pointer" checked={!isProfessionalAccount} onChange={async () => {
                              setIsProfessionalAccount(false);
-                             try { await axios.put('http://localhost:5000/api/users/privacy', { accountType: 'personal' }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Switched to Personal Account"); } catch (e) { console.error(e); }
+                             try { await axios.put(`${API_BASE}/api/users/privacy', { accountType: 'personal' }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Switched to Personal Account"); } catch (e) { console.error(e); }
                            }} />
                            <label htmlFor="personalAccount" className="font-bold cursor-pointer">Personal Account</label>
                          </div>
@@ -3615,7 +3618,7 @@ export default function App() {
                          <div className="flex items-center gap-3">
                            <input type="radio" name="accountType" id="professionalAccount" className="cursor-pointer" checked={isProfessionalAccount} onChange={async () => {
                              setIsProfessionalAccount(true);
-                             try { await axios.put('http://localhost:5000/api/users/privacy', { accountType: 'professional' }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Switched to Professional Account"); } catch (e) { console.error(e); }
+                             try { await axios.put(`${API_BASE}/api/users/privacy', { accountType: 'professional' }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Switched to Professional Account"); } catch (e) { console.error(e); }
                            }} />
                            <label htmlFor="professionalAccount" className="font-bold cursor-pointer">Professional Account</label>
                          </div>
@@ -3629,7 +3632,7 @@ export default function App() {
                          <input type="checkbox" id="activityStatus" checked={showActivityStatus} onChange={async (e) => {
                            const val = e.target.checked;
                            setShowActivityStatus(val);
-                           try { await axios.put('http://localhost:5000/api/users/privacy', { showActivityStatus: val }, { headers: { Authorization: `Bearer ${token}` } }); } catch (e) { console.error(e); }
+                           try { await axios.put(`${API_BASE}/api/users/privacy', { showActivityStatus: val }, { headers: { Authorization: `Bearer ${token}` } }); } catch (e) { console.error(e); }
                          }} className="cursor-pointer" />
                          <label htmlFor="activityStatus" className="font-bold cursor-pointer">Show Activity Status</label>
                        </div>
@@ -3642,7 +3645,7 @@ export default function App() {
                          <input type="checkbox" id="storySharing" checked={allowStorySharing} onChange={async (e) => {
                            const val = e.target.checked;
                            setAllowStorySharing(val);
-                           try { await axios.put('http://localhost:5000/api/users/privacy', { allowStorySharing: val }, { headers: { Authorization: `Bearer ${token}` } }); } catch (e) { console.error(e); }
+                           try { await axios.put(`${API_BASE}/api/users/privacy', { allowStorySharing: val }, { headers: { Authorization: `Bearer ${token}` } }); } catch (e) { console.error(e); }
                          }} className="cursor-pointer" />
                          <label htmlFor="storySharing" className="font-bold cursor-pointer">Allow Sharing</label>
                        </div>
@@ -3784,7 +3787,7 @@ export default function App() {
                              <select className="vintage-input px-2 py-1 bg-[#f9f9f9] text-[11px] cursor-pointer" value={dailyTimeLimit} onChange={async (e) => {
                                const val = parseInt(e.target.value);
                                setDailyTimeLimit(val);
-                               try { await axios.put('http://localhost:5000/api/users/time-settings', { dailyTimeLimit: val }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Time settings updated"); } catch (err) { console.error(err); }
+                               try { await axios.put(`${API_BASE}/api/users/time-settings', { dailyTimeLimit: val }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Time settings updated"); } catch (err) { console.error(err); }
                              }}>
                                <option value={0}>Off</option>
                                <option value={15}>15 minutes</option>
@@ -3803,7 +3806,7 @@ export default function App() {
                              <select className="vintage-input px-2 py-1 bg-[#f9f9f9] text-[11px] cursor-pointer" value={breakReminder} onChange={async (e) => {
                                const val = parseInt(e.target.value);
                                setBreakReminder(val);
-                               try { await axios.put('http://localhost:5000/api/users/time-settings', { breakReminder: val }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Time settings updated"); } catch (err) { console.error(err); }
+                               try { await axios.put(`${API_BASE}/api/users/time-settings', { breakReminder: val }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Time settings updated"); } catch (err) { console.error(err); }
                              }}>
                                <option value={0}>Off</option>
                                <option value={10}>Every 10 minutes</option>
@@ -3820,7 +3823,7 @@ export default function App() {
                              <input type="checkbox" className="cursor-pointer" checked={mutePushNotifications} onChange={async (e) => {
                                const val = e.target.checked;
                                setMutePushNotifications(val);
-                               try { await axios.put('http://localhost:5000/api/users/time-settings', { mutePushNotifications: val }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Time settings updated"); } catch (err) { console.error(err); }
+                               try { await axios.put(`${API_BASE}/api/users/time-settings', { mutePushNotifications: val }, { headers: { Authorization: `Bearer ${token}` } }); showTemporaryToast("Time settings updated"); } catch (err) { console.error(err); }
                              }} />
                            </div>
                            <p className="text-[10px] text-[#666]">Mute push notifications to focus on other things.</p>
