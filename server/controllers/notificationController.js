@@ -49,7 +49,60 @@ const markAsRead = async (req, res) => {
   }
 };
 
+// @desc    Get combined recent activity (notifications + unfollows) for the retro profile
+// @route   GET /api/notifications/recent-activity
+// @access  Private
+const getRecentActivity = async (req, res) => {
+  try {
+    const UnfollowRecord = require('../models/UnfollowRecord');
+    
+    // Fetch recent notifications
+    const notifications = await Notification.find({ recipient: req.user._id })
+      .populate('sender', 'username profilePic fullName')
+      .populate('relatedPost', 'videoUrl')
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    // Fetch recent unfollows
+    const unfollows = await UnfollowRecord.find({ userId: req.user._id })
+      .populate('unfollowerId', 'username profilePic fullName')
+      .sort({ unfollowedAt: -1 })
+      .limit(20)
+      .lean();
+
+    // Normalize and combine
+    const combinedActivity = [
+      ...notifications.map(n => ({
+        type: 'notification',
+        event: n.type, // 'like_reel', 'comment', 'follow'
+        user: n.sender,
+        createdAt: n.createdAt,
+        relatedPost: n.relatedPost,
+        isRead: n.isRead,
+        _id: n._id
+      })),
+      ...unfollows.map(u => ({
+        type: 'unfollow',
+        event: 'unfollow',
+        user: u.unfollowerId,
+        createdAt: u.unfollowedAt,
+        _id: u._id
+      }))
+    ];
+
+    // Sort combined by descending timestamp
+    combinedActivity.sort((a, b) => b.createdAt - a.createdAt);
+
+    res.status(200).json({ success: true, data: combinedActivity.slice(0, 20) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 module.exports = {
   getNotifications,
   markAsRead,
+  getRecentActivity
 };

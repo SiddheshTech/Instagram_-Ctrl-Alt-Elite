@@ -29,7 +29,7 @@ app.set('onlineUsers', onlineUsers);
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  socket.on('addUser', (userId) => {
+  socket.on('addUser', async (userId) => {
     if (userId) {
       const roomName = userId.toString();
       socket.join(roomName);
@@ -38,6 +38,15 @@ io.on('connection', (socket) => {
       
       onlineUsers.set(roomName, roomName); // Map user to room so io.to(receiverSocket) emits to all their sessions
       io.emit('getUsers', Array.from(onlineUsers.keys()));
+
+      // Update DB Online Status
+      try {
+        const User = require('./models/User');
+        await User.findByIdAndUpdate(userId, { isOnline: true });
+        io.emit('onlineStatusChanged', { userId, isOnline: true });
+      } catch (err) {
+        console.error('Error updating online status:', err);
+      }
 
       // Periodically track active time (every 60 seconds)
       if (!socket.timeTrackingInterval) {
@@ -106,20 +115,37 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle disconnect
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-    
-    // Clear the time tracking interval
-    if (socket.timeTrackingInterval) {
-      clearInterval(socket.timeTrackingInterval);
+  socket.on('iceCandidate', (data) => {
+    const targetSocket = onlineUsers.get(data.to);
+    if (targetSocket) {
+      io.to(targetSocket).emit('iceCandidate', data.candidate);
     }
-    
-    // Check if any users have completely disconnected (no active sockets left in their room)
-    for (let userId of onlineUsers.keys()) {
-      const room = io.sockets.adapter.rooms.get(userId);
-      if (!room || room.size === 0) {
-        onlineUsers.delete(userId);
+  });
+
+  socket.on('endCall', (data) => {
+    const targetSocket = onlineUsers.get(data.to);
+    if (targetSocket) {
+      io.to(targetSocket).emit('endCall');
+    }
+  });
+
+  // Handle disconnect
+  socket.on('disconnect', async () => {
+    console.log(`User disconnected: ${socket.id}`);
+    for (let [id, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(id);
+        
+        // Update DB
+        try {
+          const User = require('./models/User');
+          await User.findByIdAndUpdate(id, { isOnline: false });
+          io.emit('onlineStatusChanged', { userId: id, isOnline: false });
+        } catch (err) {
+          console.error('Error updating online status on disconnect:', err);
+        }
+        
+        break;
       }
     }
     io.emit('getUsers', Array.from(onlineUsers.keys()));
@@ -148,6 +174,7 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 app.use('/api/notes', require('./routes/noteRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/stories', require('./routes/storyRoutes'));
 
 // 404 Route handler
 app.use((req, res, next) => {

@@ -44,7 +44,19 @@ const createReel = async (req, res) => {
 // @access  Private
 const getReels = async (req, res) => {
   try {
-    const reels = await Reel.find()
+    const User = require('../models/User');
+    const currentUser = await User.findById(req.user._id);
+    
+    let usersToFetch = [req.user._id];
+    if (currentUser.following && currentUser.following.length > 0) {
+      usersToFetch = [...usersToFetch, ...currentUser.following];
+    } else {
+      // Discovery Mode
+      const allUsers = await User.find({}, '_id');
+      usersToFetch = allUsers.map(u => u._id);
+    }
+
+    const reels = await Reel.find({ user: { $in: usersToFetch } })
       .populate('user', 'username profilePic fullName')
       .populate('collaborators', 'username profilePic fullName')
       .populate('taggedPeople', 'username profilePic fullName')

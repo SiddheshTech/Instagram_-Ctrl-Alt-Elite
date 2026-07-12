@@ -10,9 +10,9 @@ const getUserProfile = async (req, res) => {
 
     // Check if identifier is a valid ObjectId
     if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
-      user = await User.findById(identifier).select('-password');
+      user = await User.findById(identifier).select('-password').populate('topFriends', 'username profilePic fullName');
     } else {
-      user = await User.findOne({ username: identifier }).select('-password');
+      user = await User.findOne({ username: identifier }).select('-password').populate('topFriends', 'username profilePic fullName');
     }
 
     if (!user) {
@@ -634,6 +634,51 @@ const rejectFollowRequest = async (req, res) => {
   }
 };
 
+// @desc    Update retro profile settings (Status, Now Playing, Top Friends)
+// @route   PUT /api/users/retro-profile
+// @access  Private
+const updateRetroProfile = async (req, res) => {
+  try {
+    const { customStatus, topFriends, nowPlaying } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (customStatus !== undefined) user.customStatus = customStatus;
+    
+    if (topFriends && Array.isArray(topFriends)) {
+      // Limit to 8 friends
+      user.topFriends = topFriends.slice(0, 8);
+    }
+
+    if (nowPlaying) {
+      user.nowPlaying = {
+        title: nowPlaying.title || '',
+        artist: nowPlaying.artist || '',
+        audioUrl: nowPlaying.audioUrl || ''
+      };
+      
+      // Emit socket event to update everyone viewing this profile
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('nowPlayingUpdated', { userId: user._id, nowPlaying: user.nowPlaying });
+      }
+    }
+
+    await user.save();
+    
+    // Repopulate topFriends for the response
+    await user.populate('topFriends', 'username profilePic fullName');
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 module.exports = {
   getUserProfile,
   searchUsers,
@@ -650,5 +695,6 @@ module.exports = {
   getUserUnfollowers,
   getFollowRequests,
   approveFollowRequest,
-  rejectFollowRequest
+  rejectFollowRequest,
+  updateRetroProfile
 };

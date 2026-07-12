@@ -86,6 +86,37 @@ const userSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    customStatus: {
+      type: String,
+      default: '',
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+    topFriends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    nowPlaying: {
+      title: { type: String, default: '' },
+      artist: { type: String, default: '' },
+      audioUrl: { type: String, default: '' },
+    },
+    dailyTimeLimit: {
+      type: Number,
+      default: 0,
+    },
+    breakReminder: {
+      type: Number,
+      default: 0,
+    },
+    mutePushNotifications: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

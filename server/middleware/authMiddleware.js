@@ -27,7 +27,10 @@ const protect = async (req, res, next) => {
       await session.save();
 
       // Get user from the token (exclude password)
-      req.user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id)
+        .select('-password')
+        .populate('followers', 'username fullName profilePic')
+        .populate('following', 'username fullName profilePic');
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'Not authorized, user not found' });

@@ -7,21 +7,31 @@ const User = require('../models/User');
 // @access  Private
 const sendMessage = async (req, res) => {
   try {
-    const { receiverId, text, fileUrl, fileType } = req.body;
+    const { receiverId, receiverUsername, text, fileUrl, fileType } = req.body;
     const senderId = req.user._id;
 
-    if (!receiverId || (!text && !fileUrl)) {
-      return res.status(400).json({ success: false, message: 'Receiver ID and either text or file are required' });
+    if (!receiverId && !receiverUsername) {
+      return res.status(400).json({ success: false, message: 'Receiver ID or username is required' });
+    }
+    if (!text && !fileUrl) {
+      return res.status(400).json({ success: false, message: 'Message text or file is required' });
+    }
+
+    let finalReceiverId = receiverId;
+    if (!finalReceiverId && receiverUsername) {
+      const targetUser = await User.findOne({ username: receiverUsername });
+      if (!targetUser) return res.status(404).json({ success: false, message: 'User not found' });
+      finalReceiverId = targetUser._id;
     }
 
     // Check if conversation exists
     let conversation = await Conversation.findOne({
-      participants: { $all: [senderId, receiverId] },
+      participants: { $all: [senderId, finalReceiverId] },
     });
 
     if (!conversation) {
       conversation = await Conversation.create({
-        participants: [senderId, receiverId],
+        participants: [senderId, finalReceiverId],
       });
     }
 
@@ -40,7 +50,7 @@ const sendMessage = async (req, res) => {
     // Emit via socket
     const io = req.app.get('io');
     const onlineUsers = req.app.get('onlineUsers');
-    const receiverSocket = onlineUsers.get(receiverId.toString());
+    const receiverSocket = onlineUsers.get(finalReceiverId.toString());
     
     if (receiverSocket) {
       io.to(receiverSocket).emit('newMessage', newMessage);

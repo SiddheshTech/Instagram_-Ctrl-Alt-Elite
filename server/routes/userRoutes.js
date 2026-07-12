@@ -18,37 +18,29 @@ const {
   getFollowRequests,
   approveFollowRequest,
   rejectFollowRequest,
+  updateRetroProfile
 } = require('../controllers/userController');
 
 // Routes
 router.route('/search').get(protect, searchUsers);
-
-// Settings and Profile Routes (Must be before wildcard :identifier)
-router.route('/profile/update').put(protect, updateUserProfile);
-router.route('/profile/change-password').put(protect, changeUserPassword);
-router.route('/profile/privacy-settings').put(protect, updateUserPrivacySettings);
-
-// Time Management Routes
-router.route('/profile/time-spent').get(protect, getUserTimeSpent);
-router.route('/profile/time-limit').put(protect, updateUserTimeSettings);
-
-// Follow Request Routes
+router.route('/sessions').get(protect, getUserSessions);
+router.route('/sessions/:id/confirm').put(protect, confirmUserSession);
+router.route('/sessions/:id').delete(protect, logoutUserSession);
+router.route('/emails').get(protect, getUserEmails);
+router.route('/unfollowers').get(protect, getUserUnfollowers);
 router.route('/follow-requests').get(protect, getFollowRequests);
 router.route('/follow-requests/:id/approve').put(protect, approveFollowRequest);
 router.route('/follow-requests/:id/reject').put(protect, rejectFollowRequest);
 
-// Unfollowers Activity Route
-router.route('/profile/unfollowers').get(protect, getUserUnfollowers);
+router.route('/retro-profile').put(protect, updateRetroProfile);
 
-// Sessions / Login Activity Routes
-router.route('/profile/sessions').get(protect, getUserSessions);
-router.route('/profile/sessions/:id/confirm').put(protect, confirmUserSession);
-router.route('/profile/sessions/:id').delete(protect, logoutUserSession);
+router.route('/time-settings').put(protect, updateUserTimeSettings);
+router.route('/time-spent').get(protect, getUserTimeSpent);
 
-// Email Logs Routes
-router.route('/profile/emails').get(protect, getUserEmails);
+router.route('/profile').put(protect, updateUserProfile);
+router.route('/password').put(protect, changeUserPassword);
+router.route('/privacy').put(protect, updateUserPrivacySettings);
 
-// Wildcard route matches at the end
 router.route('/:identifier').get(protect, getUserProfile);
 router.route('/:id/follow').put(protect, toggleFollowUser);
 
