@@ -16,13 +16,13 @@ export function Login({ onLogin }: { onLogin: (token: string, user: any) => void
 
     try {
       if (isLoginMode) {
-        const res = await axios.post('${API_BASE_URL}/api/auth/login', {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
           emailOrUsername: username,
           password
         });
         onLogin(res.data.token, res.data.user);
       } else {
-        const res = await axios.post('${API_BASE_URL}/api/auth/signup', {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/signup`, {
           username,
           password,
           email,
