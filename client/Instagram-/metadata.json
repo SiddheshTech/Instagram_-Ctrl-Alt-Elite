@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Remix: Instagram Clone",
+  "description": "A clone of the Instagram home page.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
